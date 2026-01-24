@@ -1,9 +1,9 @@
 //
 // Created by Andreas Royset on 1/23/26.
 //
+#pragma once
 
 #include <SFML/Graphics.hpp>
-#pragma once
 
 inline void drawRoundedRectangle(sf::RenderTarget& target, sf::Vector2f position, float width, float height, sf::Color color, float cornerRadius, int quality = 64) {
 	cornerRadius = fmaxf(cornerRadius, 0.001f);
@@ -31,13 +31,48 @@ inline void drawRoundedRectangle(sf::RenderTarget& target, sf::Vector2f position
 	target.draw(vertices);
 }
 
-inline void drawThickLine(
-	sf::RenderTarget& target,
-	sf::Vector2f a,
-	sf::Vector2f b,
-	float thickness,
-	sf::Color color
-) {
+inline void drawRoundedOutline(sf::RenderTarget& target, sf::Vector2f position, float width, float height, sf::Color color1, sf::Color color2, float cornerRadius, float thickness, int quality = 64) {
+	cornerRadius = fmaxf(cornerRadius, 0.001f);
+
+	sf::VertexArray vertices(sf::TriangleStrip, 2*quality+2);
+
+	for (int i = 0; i < quality; i++) {
+		float angle = float(i) / float(quality) * 2.0f * float(M_PI);
+		sf::Vector2f pos1 = {cos(angle)*cornerRadius, sin(angle)*cornerRadius};
+
+		if (pos1.x < 0) pos1.x += cornerRadius;
+		else pos1.x += width - cornerRadius;
+		if (pos1.y < 0) pos1.y += cornerRadius;
+		else pos1.y += height - cornerRadius;
+
+		pos1 += position;
+
+		vertices[i*2].position = pos1;
+		vertices[i*2].color = color1;
+
+		sf::Vector2f pos2 = {cos(angle)*(cornerRadius-thickness), sin(angle)*(cornerRadius-thickness)};
+
+		if (pos2.x < 0) pos2.x += cornerRadius;
+		else pos2.x += width - cornerRadius;
+		if (pos2.y < 0) pos2.y += cornerRadius;
+		else pos2.y += height - cornerRadius;
+
+		pos2 += position;
+
+		vertices[i*2+1].position = pos2;
+		vertices[i*2+1].color = color2;
+	}
+
+	vertices[2*quality].position = vertices[0].position;
+	vertices[2*quality].color = vertices[0].color;
+
+	vertices[2*quality+1].position = vertices[1].position;
+	vertices[2*quality+1].color = vertices[1].color;
+
+	target.draw(vertices);
+}
+
+inline void drawThickLine(sf::RenderTarget& target, sf::Vector2f a, sf::Vector2f b, float thickness, sf::Color color) {
 	sf::Vector2f d = b - a;
 	float len = std::sqrt(d.x * d.x + d.y * d.y);
 	if (len == 0.f) return;

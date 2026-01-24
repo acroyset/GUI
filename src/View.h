@@ -7,11 +7,13 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "Interpolated.h"
+
 struct View {
 
 protected:
 
-	sf::Vector2f position{-1,-1};
+	sf::Vector2f position;
 
 	float topPadding = 0;
 	float bottomPadding = 0;
@@ -22,6 +24,8 @@ protected:
 	float height = 0;
 
 	sf::Color bgColor = sf::Color::Transparent;
+	sf::Color outlineColor = sf::Color::Transparent;
+	float outlineThickness = 0;
 
 	float cornerRadius = 0.1;
 
@@ -30,7 +34,7 @@ public:
 
 	View() = default;
 
-	virtual void update(sf::Vector2f) = 0;
+	virtual void update(sf::Vector2f, float) = 0;
 	virtual void draw(sf::RenderTarget&) const = 0;
 
 	void setTopPadding(float topPadding = 16) { this->topPadding = topPadding; }
@@ -56,9 +60,16 @@ public:
 	void setCornerRadius(float cornerRadius = 8) {this->cornerRadius = cornerRadius;}
 
 	void setBgColor(sf::Color color) {this->bgColor = color;}
+	void setOutlineColor(sf::Color color) {this->outlineColor = color; outlineThickness = fmaxf(outlineThickness, 1.0);}
+	void setOutlineThickness(float outlineThickness = 4) {this->outlineThickness = outlineThickness;}
+
+	void setPosition(sf::Vector2f pos) { this->position = pos; }
+	void setWidth(float w) { this->width = w; }
+	void setHeight(float h) { this->height = h; }
 
 	[[nodiscard]] float getWidth() const {return width;}
 	[[nodiscard]] float getHeight() const {return height;}
+	[[nodiscard]] sf::Vector2f getPosition() const {return position;}
 };
 
 #endif //VIEW_H

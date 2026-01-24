@@ -5,6 +5,7 @@
 #include "Text.h"
 #include "VStack.h"
 #include "HStack.h"
+#include "Root.h"
 
 namespace Color {
 	inline const sf::Color Red    {255, 100, 120};
@@ -47,6 +48,8 @@ int main() {
 	textObj1->setPadding(8);
 	textObj1->setCornerRadius(32);
 	textObj1->setTextPadding(32);
+	textObj1->setOutlineColor(Color::White);
+	textObj1->setOutlineThickness();
 
 	std::string text2 = "Text 2";
 	auto* textObj2 = new Text(text2, Color::White, font, 30);
@@ -62,12 +65,19 @@ int main() {
 	textObj3->setCornerRadius(32);
 	textObj3->setTextPadding(32);
 
-	std::string graph1Title = "Graph Title";
-	auto* textObj4 = new Text(graph1Title, Color::White, font, 30);
+	std::string text4 = "Text 4";
+	auto* textObj4 = new Text(text4, Color::White, font, 30);
+	textObj4->setBgColor(Color::Black);
+	textObj4->setPadding(8);
+	textObj4->setCornerRadius(32);
 	textObj4->setTextPadding(32);
 
-	std::vector<sf::Vector2f> data {{0,0}};
-	auto* graph1 = new Graph(data, 500, 500, textObj4);
+	std::string graph1Title = "Money";
+	auto* textObj5 = new Text(graph1Title, Color::White, font, 30);
+	textObj5->setTextPadding(32);
+
+	std::vector<sf::Vector2f> data {{0, 36000}};
+	auto* graph1 = new Graph(data, 500, 500, textObj5);
 	graph1->setBgColor(Color::Yellow);
 	graph1->setPadding(8);
 	graph1->setCornerRadius(32);
@@ -76,13 +86,22 @@ int main() {
 	VStack1->addItem(textObj1);
 	VStack1->addItem(textObj2);
 	VStack1->addItem(textObj3);
+	VStack1->addItem(textObj4);
 
 	auto* HStack1 = new HStack();
 	HStack1->addItem(VStack1);
+	HStack1->addItem(new Spacer());
 	HStack1->addItem(graph1);
 	HStack1->setPadding(8);
 
+	auto* root = new Root(window);
+
+	root->addView(HStack1);
+
 	float x = 0;
+
+	Interpolated<float> testInterpolation(0, 2, EASE_OUT_ELASTIC);
+	testInterpolation.set(1);
 
 	sf::Clock clock;
 	while (window.isOpen()) {
@@ -100,15 +119,25 @@ int main() {
 		float dt = clock.restart().asSeconds();
 		text2 = "Fps: " + std::to_string(int(1/dt));
 		text3 = "Data Points: " + std::to_string(data.size());
+		text4 = std::to_string(testInterpolation.get());
 
 		x += dt;
-		data.emplace_back(x, pow(1+0.035/365, 365*x)-1);
+		data.emplace_back(x, 36000*pow(1+0.035/365, 365*x));
 
+		if (testInterpolation.update(dt)) {
+			testInterpolation.set(1- testInterpolation.get());
+		}
+
+		sf::CircleShape circle(10);
+		circle.setFillColor(Color::White);
+		circle.setPosition({500, testInterpolation.get()*500+50});
 
 		window.clear(sf::Color(90, 90, 90));
 
-		HStack1->update(sf::Vector2f(0,0));
-		HStack1->draw(window);
+		window.draw(circle);
+
+		root->update(dt);
+		root->draw();
 
 		window.display();
 	}

@@ -22,7 +22,7 @@ public:
 	float graphWidth;
 	float graphHeight;
 
-	float padding = 8;
+	float padding = 16;
 	float pointRadius = 1;
 	float lineThickness = 3;
 	float maxPoints = 256;
@@ -33,8 +33,9 @@ public:
 			graphHeight(graphHeight),
 			textObj(text) {}
 
-	void update(sf::Vector2f position) override {
-		textObj->update(position + sf::Vector2f(leftPadding, topPadding));
+	void update(sf::Vector2f position, float dt) override {
+
+		textObj->update(position + sf::Vector2f(leftPadding, topPadding), dt);
 
 		this->position = position;
 
@@ -48,19 +49,13 @@ public:
 		float rHeight = height - topPadding - bottomPadding;
 
 		drawRoundedRectangle(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, bgColor, cornerRadius);
+		drawRoundedOutline(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, outlineColor, outlineColor, cornerRadius, outlineThickness);
 
 		sf::Vector2f startPos = position + sf::Vector2f{leftPadding + padding,topPadding + textObj->getHeight()};
 		float GWidth = rWidth-2*padding;
 		float GHeight = rHeight - textObj->getHeight() - padding;
 
-		drawRoundedRectangle(
-			target,
-			startPos,
-			GWidth,
-			GHeight,
-			sf::Color(57, 57, 57),
-			cornerRadius - padding
-		);
+		drawRoundedRectangle(target, startPos, GWidth, GHeight, sf::Color(57, 57, 57), cornerRadius - padding);
 
 		sf::Vector2f mins;
 		sf::Vector2f maxs;
@@ -109,7 +104,7 @@ public:
 				oss << std::fixed << std::setprecision(decimalPlaces) << dataX;
 				sf::Text label(oss.str(), textObj->font, 12);
 				label.setFillColor(sf::Color(150, 150, 150));
-				label.setPosition(screenX - 10, startPos.y + GHeight - 15);
+				label.setPosition(screenX - 10, startPos.y + GHeight - graphPadding);
 				target.draw(label);
 			}
 			labelCountX++;
@@ -132,7 +127,7 @@ public:
 				oss << std::fixed << std::setprecision(decimalPlaces) << dataY;
 				sf::Text label(oss.str(), textObj->font, 12);
 				label.setFillColor(sf::Color(150, 150, 150));
-				label.setPosition(startPos.x + GWidth - 2*graphPadding, screenY);
+				label.setPosition(startPos.x + GWidth - label.getLocalBounds().width - graphPadding, screenY);
 				target.draw(label);
 			}
 			labelCountY++;

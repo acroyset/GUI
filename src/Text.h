@@ -31,7 +31,8 @@ public:
 		textObj.setStyle(sf::Text::Bold);
 	}
 
-	void update(sf::Vector2f position) override {
+	void update(sf::Vector2f position, float dt) override {
+
 		textObj.setString(text);
 		sf::FloatRect bounds = textObj.getLocalBounds();
 
@@ -39,11 +40,11 @@ public:
 		height = bounds.height + 2*textPadding + topPadding + bottomPadding;
 
 		width = fmaxf(width, reserveWidth);
-		if (width > reserveWidth) reserveWidth = width + 20;
+		if (width > reserveWidth) reserveWidth= width + 20;
 
 		this->position = position;
 
-		textObj.setPosition(position + sf::Vector2f(textPadding + leftPadding, textPadding-bounds.height/2 + topPadding));
+		textObj.setPosition(position + sf::Vector2f(textPadding + leftPadding, textPadding - bounds.height/2 + topPadding));
 	}
 
 	void draw(sf::RenderTarget& target) const override {
@@ -52,6 +53,7 @@ public:
 		float rHeight = height - topPadding - bottomPadding;
 
 		drawRoundedRectangle(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, bgColor, cornerRadius);
+		drawRoundedOutline(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, outlineColor, outlineColor, cornerRadius, outlineThickness);
 
 		target.draw(textObj);
 	}

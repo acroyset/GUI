@@ -6,6 +6,8 @@
 #define HSTACK_H
 #include "View.h"
 
+class Spacer;
+
 class HStack final : public View {
 	std::vector<View*> items;
 
@@ -13,8 +15,7 @@ public:
 
 	float spacing = 0;
 
-	void update(sf::Vector2f position) override {
-
+	void update(sf::Vector2f position, float dt) override {
 
 		int numItems = int(items.size());
 
@@ -24,21 +25,49 @@ public:
 		position.y += topPadding;
 
 		float minHeightOfStack = 0.0f;
-
 		float totalWidth = 0;
+		int spacerCount = 0;
 
+		// First pass: calculate non-spacer width and count spacers
 		for (int i = 0; i < numItems; i++) {
 			View* item = items[i];
-			item->update(position);
-			float itemHeight = item->getHeight();
-			float itemWidth = item->getWidth();
-			totalWidth += itemWidth;
+			Spacer* spacer = dynamic_cast<Spacer*>(item);
 
-			if (itemHeight > minHeightOfStack) {
-				minHeightOfStack = itemHeight;
+			if (spacer) {
+				spacerCount++;
+			} else {
+				item->update(position, dt);
+				float itemHeight = item->getHeight();
+				float itemWidth = item->getWidth();
+				totalWidth += itemWidth;
+
+				if (itemHeight > minHeightOfStack) {
+					minHeightOfStack = itemHeight;
+				}
 			}
+		}
 
-			position.x += itemWidth;
+		// Calculate available space for spacers
+		float availableWidth = width - leftPadding - rightPadding - totalWidth;
+		float spacerWidth = spacerCount > 0 ? availableWidth / spacerCount : 0;
+
+		// Second pass: update all items with proper positioning
+		sf::Vector2f currentPos = position;
+		for (int i = 0; i < numItems; i++) {
+			View* item = items[i];
+			Spacer* spacer = dynamic_cast<Spacer*>(item);
+
+			if (spacer) {
+				spacer->setPosition(currentPos);
+				spacer->setWidth(spacerWidth);
+				spacer->setHeight(minHeightOfStack);
+				currentPos.x += spacerWidth;
+			} else {
+				item->update(currentPos, dt);
+				float itemHeight = item->getHeight();
+				float itemWidth = item->getWidth();
+				currentPos.x += itemWidth;
+			}
 		}
 
 		width = totalWidth + leftPadding + rightPadding;
@@ -51,6 +80,7 @@ public:
 		float rHeight = height - topPadding - bottomPadding;
 
 		drawRoundedRectangle(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, bgColor, cornerRadius);
+		drawRoundedOutline(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, outlineColor, outlineColor, cornerRadius, outlineThickness);
 
 		for (const View* item : items) {
 			item->draw(target);
