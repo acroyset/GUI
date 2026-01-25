@@ -33,14 +33,16 @@ public:
 			graphHeight(graphHeight),
 			textObj(text) {}
 
-	void update(sf::Vector2f position, float dt) override {
+	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 
-		textObj->update(position + sf::Vector2f(leftPadding, topPadding), dt);
+		textObj->update(position + sf::Vector2f(leftPadding, topPadding), dt, mousePos, mousePressed);
 
 		this->position = position;
 
+		float textHeight = textObj->getHeight();
+
 		width = fmaxf(textObj->getWidth(), graphWidth) + leftPadding + rightPadding;
-		height = textObj->getHeight() + graphHeight + topPadding + bottomPadding + padding;
+		height = textHeight + graphHeight + topPadding + bottomPadding + (textHeight != 0 ? padding : 0);
 	}
 
 	void draw(sf::RenderTarget& target) const override {
@@ -57,8 +59,8 @@ public:
 
 		drawRoundedRectangle(target, startPos, GWidth, GHeight, sf::Color(57, 57, 57), cornerRadius - padding);
 
-		sf::Vector2f mins;
-		sf::Vector2f maxs;
+		sf::Vector2f mins{static_cast<float>(pow(10, 307)), static_cast<float>(pow(10,307))};
+		sf::Vector2f maxs{static_cast<float>(-pow(10, 307)), static_cast<float>(-pow(10,307))};
 
 		for (sf::Vector2f& point : points) {
 			mins.x = std::min(mins.x, point.x);
@@ -135,7 +137,8 @@ public:
 
 		int step = std::max(1.0f, float(points.size()/maxPoints));
 
-		for (int i = 0; i < points.size()-step; i += step) {
+		for (int i = 0; i < points.size()-1; i += step) {
+			i = std::min(i, int(points.size())-1-step);
 			sf::Vector2f point0 = points[i];
 			sf::Vector2f normalizedPoint0 = {
 				(point0.x - mins.x) * scaleX  +  startPos.x + pointRadius + graphPadding,
@@ -152,7 +155,8 @@ public:
 		}
 
 		sf::CircleShape circle(pointRadius);
-		for (int i = 0; i < points.size(); i += step) {
+		for (int i = 0; i < points.size()+step-1; i += step) {
+			i = std::min(i, int(points.size())-1);
 			sf::Vector2f point = points[i];
 
 			sf::Vector2f normalizedPoint = {

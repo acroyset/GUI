@@ -21,7 +21,7 @@ inline float easeOutBack(float x) {return 2.5f*std::pow(x-1, 3) + 1.5f*std::pow(
 inline float easeOutElastic(float x) {
 	const float c4 = (2 * M_PI) / 3;
 
-	return x == 0 ? 0 : x == 1 ? 1: std::pow(3, -10 * x) * std::sin((x * 10 - 0.75) * c4) + 1;}
+	return x == 0 ? 0 : x == 1 ? 1: std::pow(2, -10 * x) * std::sin((x * 10 - 0.75) * c4) + 1;}
 
 template <typename T>
 
@@ -40,6 +40,56 @@ class Interpolated {
 	Interpolated() : currentValue(), targetValue(), startValue(), t(), function(EASE_IN_OUT_CUBIC), time(1) {}
 	Interpolated(T value, float time = 1, InterpolationFunction f = EASE_IN_OUT_CUBIC) : currentValue(value), targetValue(value), startValue(value), t(0), time(time), function(f) {}
 
+	void operator = (T value) {
+		set(value);
+	}
+
+	T operator + (T value) {
+		return currentValue + value;
+	}
+	T operator - (T value) {
+		return currentValue - value;
+	}
+	T operator * (T value) {
+		return currentValue * value;
+	}
+	T operator / (T value) {
+		return currentValue / value;
+	}
+
+	void operator += (T value) {
+		set(currentValue + value);
+	}
+	void operator -= (T value) {
+		set(currentValue - value);
+	}
+	void operator *= (T value) {
+		set(currentValue * value);
+	}
+	void operator /= (T value) {
+		set(currentValue / value);
+	}
+
+	bool operator == (T value) {
+		return currentValue == value;
+	}
+	bool operator != (T value) {
+		return currentValue != value;
+	}
+	bool operator > (T value) {
+		return currentValue > value;
+	}
+	bool operator < (T value) {
+		return currentValue < value;
+	}
+	bool operator >= (T value) {
+		return currentValue >= value;
+	}
+	bool operator <= (T value) {
+		return currentValue <= value;
+	}
+
+	explicit operator T() {return currentValue;}
 
 	void reset() {targetValue = currentValue; startValue = currentValue; t = 0;}
 
@@ -81,6 +131,8 @@ class Interpolated {
 		}
 		return false;
 	}
+
+	void setTime(float newTime) {time = newTime;}
 };
 
 #endif //INTERPOLATED_H

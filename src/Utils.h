@@ -6,7 +6,12 @@
 #include <SFML/Graphics.hpp>
 
 inline void drawRoundedRectangle(sf::RenderTarget& target, sf::Vector2f position, float width, float height, sf::Color color, float cornerRadius, int quality = 64) {
-	cornerRadius = fmaxf(cornerRadius, 0.001f);
+	if (width < 0 || height < 0) return;
+
+	// Clamp corner radius to at most half the smaller dimension
+	float maxRadius = fminf(width, height) / 2.0f;
+	cornerRadius = fminf(cornerRadius, maxRadius);
+	cornerRadius = fmaxf(cornerRadius, 0.00001f);
 
 	sf::VertexArray vertices(sf::TriangleFan, quality+1);
 
@@ -32,7 +37,12 @@ inline void drawRoundedRectangle(sf::RenderTarget& target, sf::Vector2f position
 }
 
 inline void drawRoundedOutline(sf::RenderTarget& target, sf::Vector2f position, float width, float height, sf::Color color1, sf::Color color2, float cornerRadius, float thickness, int quality = 64) {
-	cornerRadius = fmaxf(cornerRadius, 0.001f);
+	if (width < 0 || height < 0) return;
+
+	// Clamp corner radius to at most half the smaller dimension
+	float maxRadius = fminf(width, height) / 2.0f;
+	cornerRadius = fminf(cornerRadius, maxRadius);
+	cornerRadius = fmaxf(cornerRadius, 0.00001f);
 
 	sf::VertexArray vertices(sf::TriangleStrip, 2*quality+2);
 

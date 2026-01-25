@@ -14,7 +14,7 @@ public:
 
 	Spacer() {}
 
-	void update(sf::Vector2f position, float dt) override {
+	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 		this->position = position;
 		width = 0;
 		height = 0;

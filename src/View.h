@@ -34,7 +34,7 @@ public:
 
 	View() = default;
 
-	virtual void update(sf::Vector2f, float) = 0;
+	virtual void update(sf::Vector2f, float, sf::Vector2f, bool) = 0;
 	virtual void draw(sf::RenderTarget&) const = 0;
 
 	void setTopPadding(float topPadding = 16) { this->topPadding = topPadding; }

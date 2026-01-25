@@ -23,10 +23,17 @@ class Root {
 	void update(float dt) {
 		auto windowSize = window.getSize();
 
+		// Get mouse position relative to the window
+		sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
+		sf::Vector2f mousePos = window.mapPixelToCoords(mousePixelPos);
+
+		// Check if left mouse button is pressed
+		bool mousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+
 		for (View* view : views) {
 			view->setWidth(windowSize.x);
 			view->setHeight(windowSize.y);
-			view->update({0,0}, dt);
+			view->update({0,0}, dt, mousePos, mousePressed);
 		}
 	}
 

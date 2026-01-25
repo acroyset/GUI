@@ -15,7 +15,7 @@ public:
 
 	float spacing = 0;
 
-	void update(sf::Vector2f position, float dt) override {
+	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 
 		int numItems = int(items.size());
 
@@ -36,7 +36,6 @@ public:
 			if (spacer) {
 				spacerCount++;
 			} else {
-				item->update(position, dt);
 				float itemHeight = item->getHeight();
 				float itemWidth = item->getWidth();
 				totalWidth += itemWidth;
@@ -63,7 +62,7 @@ public:
 				spacer->setHeight(minHeightOfStack);
 				currentPos.x += spacerWidth;
 			} else {
-				item->update(currentPos, dt);
+				item->update(currentPos, dt, mousePos, mousePressed);
 				float itemHeight = item->getHeight();
 				float itemWidth = item->getWidth();
 				currentPos.x += itemWidth;
