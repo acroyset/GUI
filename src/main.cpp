@@ -45,16 +45,9 @@ int main() {
 
 
 	Interpolated<float> testInterpolation1(0, 2, EASE_IN_OUT_CUBIC);
-	testInterpolation1.set(1);
-
 	Interpolated<float> testInterpolation2(0, 2, EASE_IN_BACK);
-	testInterpolation2.set(1);
-
 	Interpolated<float> testInterpolation3(0, 2, EASE_OUT_BACK);
-	testInterpolation3.set(1);
-
 	Interpolated<float> testInterpolation4(0, 2, EASE_OUT_ELASTIC);
-	testInterpolation4.set(1);
 
 
 	auto* valueBar1 = new ValueBar(-0.25f, 1.25f, 200, 32, blankTextObj);

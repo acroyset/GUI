@@ -11,6 +11,20 @@
 #include "Text.h"
 #include "../Utils/View.h"
 
+inline int getDecimalPlaces(float value) {
+	if (value == 0.0f) return 0;
+
+	value = std::abs(value);
+
+	// For numbers >= 1, count digits before decimal
+	if (value >= 1.0f) {
+		return std::max(2-(static_cast<int>(std::floor(std::log10(value)))), 0);
+	}
+
+	// For numbers < 1, count zeros after decimal
+	return -static_cast<int>(std::floor(std::log10(value))) + 1;
+};
+
 class Graph final : public View {
 
 	Text* textObj;
@@ -101,24 +115,9 @@ public:
 		float scaleY = (GHeight-2*pointRadius - 2*graphPadding) / rangeY;
 
 		// Draw gridlines at fixed data intervals that scale with mins/maxs
-		float gridStepX = std::powf(2, std::floor(std::log2(rangeX / 4)));
-		float gridStepY = std::powf(2, std::floor(std::log2(rangeY / 4)));
+		float gridStepX = std::powf(10, std::floor(std::log10(rangeX / 1)))/2;
+		float gridStepY = std::powf(10, std::floor(std::log10(rangeY / 1)))/2;
 
-		auto getDecimalPlaces = [](float value) -> int {
-			if (value == 0.0f) return 0;
-
-			value = std::abs(value);
-
-			// For numbers >= 1, count digits before decimal
-			if (value >= 1.0f) {
-				return std::max(2-(static_cast<int>(std::floor(std::log10(value)))), 0);
-			}
-
-			// For numbers < 1, count zeros after decimal
-			return -static_cast<int>(std::floor(std::log10(value))) + 1;
-		};
-
-		// Usage in your code:
 		int decimalPlacesX = getDecimalPlaces(rangeX);
 		int decimalPlacesY = getDecimalPlaces(rangeY);
 
@@ -127,7 +126,7 @@ public:
 
 		// Vertical gridlines with labels
 		float dataX = std::ceil(mins.x / gridStepX) * gridStepX;
-		while (dataX <= maxs.x){
+		while (dataX <= maxs.x || labelCountX > 50){
 			float screenX = (dataX - mins.x) * scaleX + startPos.x + graphPadding;
 
 			drawThickLine(
@@ -152,7 +151,7 @@ public:
 
 		// Horizontal gridlines with labels
 		float dataY = std::ceil(mins.y / gridStepY) * gridStepY;
-		while (dataY <= maxs.y) {
+		while (dataY <= maxs.y || labelCountY > 50) {
 			float screenY = startPos.y + GHeight - graphPadding - (dataY - mins.y) * scaleY;
 
 			drawThickLine(
