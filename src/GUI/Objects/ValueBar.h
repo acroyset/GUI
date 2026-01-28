@@ -8,9 +8,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Utils.h"
+#include "../Utils/Utils.h"
 #include "Text.h"
-#include "View.h"
+#include "../Utils/View.h"
 
 class ValueBar final : public View {
 
@@ -18,7 +18,7 @@ class ValueBar final : public View {
 
 public:
 
-	float& barValue;
+	float barValue;
 	float minValue;
 	float maxValue;
 	float barWidth;
@@ -27,13 +27,34 @@ public:
 	float padding = 16;
 	float outlineThickness = 4;
 
-	ValueBar(float& barValue, float minValue, float maxValue, float barWidth, float barHeight, Text* text) :
+	ValueBar(float minValue, float maxValue, float barWidth, float barHeight, Text* text) :
+			barValue(minValue),
+			minValue(minValue),
+			maxValue(maxValue),
+			barWidth(barWidth),
+			barHeight(barHeight),
+			textObj(text) {
+		setPadding(8);
+		setCornerRadius(32);
+	}
+
+	ValueBar(const float barValue, float minValue, float maxValue, float barWidth, float barHeight, Text* text) :
 			barValue(barValue),
 			minValue(minValue),
 			maxValue(maxValue),
 			barWidth(barWidth),
 			barHeight(barHeight),
-			textObj(text) {}
+			textObj(text) {
+		setPadding(8);
+		setCornerRadius(32);
+	}
+
+	void setValue(float value) {
+		barValue = value;
+	}
+	[[nodiscard]] float getValue() const {
+		return barValue;
+	}
 
 	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 
@@ -45,7 +66,7 @@ public:
 		height = textObj->getHeight() + barHeight + topPadding + bottomPadding + 2*padding;
 	}
 
-	void draw(sf::RenderTarget& target) const override {
+	void draw(sf::RenderTarget& target) override {
 
 		float rWidth = width - leftPadding - rightPadding;
 		float rHeight = height - topPadding - bottomPadding;

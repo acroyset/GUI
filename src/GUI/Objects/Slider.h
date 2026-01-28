@@ -8,9 +8,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Utils.h"
-#include "Text.h"
-#include "View.h"
+#include "../Utils/Utils.h"
+#include "../Objects/Text.h"
+#include "../Utils/View.h"
 
 class Slider final : public View {
 
@@ -34,7 +34,10 @@ public:
           maxValue(maxValue),
           barWidth(barWidth),
           barHeight(barHeight),
-          textObj(text) {}
+          textObj(text) {
+        setPadding(8);
+        setCornerRadius(32);
+    }
 
     void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
         textObj->update(position + sf::Vector2f(leftPadding, topPadding), dt, mousePos, mousePressed);
@@ -63,7 +66,7 @@ public:
     }
 
 
-    void draw(sf::RenderTarget& target) const override {
+    void draw(sf::RenderTarget& target) override {
 
         float rWidth = width - leftPadding - rightPadding;
         float rHeight = height - topPadding - bottomPadding;
@@ -98,7 +101,8 @@ public:
         textObj->draw(target);
     }
 
-    float getValue() {return barValue;}
+    void setValue(const float value) {barValue = value;}
+    [[nodiscard]] float getValue() const {return barValue;}
 };
 
 #endif //SLIDER_H

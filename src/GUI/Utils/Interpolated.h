@@ -17,11 +17,11 @@ enum InterpolationFunction {
 inline float linear(float x) {return x;}
 inline float easeInOutCubic(float x) {return -2*x*x*x+3*x*x;}
 inline float easeInBack(float x) {return 2.5f*x*x*x-1.5f*x*x;}
-inline float easeOutBack(float x) {return 2.5f*std::pow(x-1, 3) + 1.5f*std::pow(x-1, 2) + 1;}
+inline float easeOutBack(float x) {return 2.5f*std::powf(x-1, 3) + 1.5f*std::powf(x-1, 2) + 1;}
 inline float easeOutElastic(float x) {
 	const float c4 = (2 * M_PI) / 3;
 
-	return x == 0 ? 0 : x == 1 ? 1: std::pow(2, -10 * x) * std::sin((x * 10 - 0.75) * c4) + 1;}
+	return x == 0 ? 0 : x == 1 ? 1: std::powf(2, -10 * x) * std::sinf((x * 10 - 0.75f) * c4) + 1;}
 
 template <typename T>
 
@@ -37,11 +37,12 @@ class Interpolated {
 
 	public:
 
-	Interpolated() : currentValue(), targetValue(), startValue(), t(), function(EASE_IN_OUT_CUBIC), time(1) {}
-	Interpolated(T value, float time = 1, InterpolationFunction f = EASE_IN_OUT_CUBIC) : currentValue(value), targetValue(value), startValue(value), t(0), time(time), function(f) {}
+	Interpolated() : currentValue(), targetValue(), startValue(), t(), time(1), function(EASE_IN_OUT_CUBIC) {}
+	explicit Interpolated(T value, float time = 1, InterpolationFunction f = EASE_IN_OUT_CUBIC) : currentValue(value), targetValue(value), startValue(value), t(0), time(time), function(f) {}
 
-	void operator = (T value) {
+	Interpolated& operator = (T value) {
 		set(value);
+		return *this;
 	}
 
 	T operator + (T value) {

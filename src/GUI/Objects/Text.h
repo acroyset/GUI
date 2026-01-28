@@ -5,15 +5,13 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include <variant>
-#include "Utils.h"
-#include "View.h"
+#include "../Utils/Utils.h"
+#include "../Utils/View.h"
 
 class Text final : public View {
 
 	sf::Text textObj;
-	std::variant<std::string, std::string*> textVariant;
-	bool isReference;
+	std::string text;
 
 public:
 
@@ -24,30 +22,33 @@ public:
 
 	int charSize;
 
-	float textPadding = 16;
+	float textPadding = 32;
+
+	// Constructor for no string
+    Text(sf::Color color, const sf::Font& font, int charSize = 32)
+		: color(color), font(font), charSize(charSize) {
+		textObj = sf::Text("", font, charSize);
+		textObj.setFillColor(color);
+		textObj.setStyle(sf::Text::Bold);
+		setPadding(8);
+		setCornerRadius(32);
+	}
 
     // Constructor for constant string
-    Text(const std::string& text, sf::Color color, const sf::Font& font, int charSize)
-        : textVariant(std::string(text)), isReference(false), color(color), font(font), charSize(charSize) {
-       textObj = sf::Text(std::get<std::string>(textVariant), font, charSize);
-       textObj.setFillColor(color);
-       textObj.setStyle(sf::Text::Bold);
-    }
-
-    // Constructor for reference to string
-    Text(std::string& text, sf::Color color, const sf::Font& font, int charSize)
-        : textVariant(&text), isReference(true), color(color), font(font), charSize(charSize) {
+    Text(const std::string& text, sf::Color color, const sf::Font& font, int charSize = 32)
+        : text(text), color(color), font(font), charSize(charSize) {
 		textObj = sf::Text(text, font, charSize);
 		textObj.setFillColor(color);
 		textObj.setStyle(sf::Text::Bold);
-	}
+    	setPadding(8);
+    	setCornerRadius(32);
+    }
 
+	void setText(const std::string& string) {
+	    text = string;
+    }
     std::string& getText() {
-        if (isReference) {
-            return *std::get<std::string*>(textVariant);
-        } else {
-            return std::get<std::string>(textVariant);
-        }
+        return text;
     }
 
 	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
@@ -55,16 +56,16 @@ public:
 		textObj.setString(getText());
 
     	this->position = position;
-    	textObj.setPosition(position + sf::Vector2f(textPadding + leftPadding, textPadding + topPadding - charSize/4));
+    	textObj.setPosition(position + sf::Vector2f(textPadding + leftPadding, textPadding + topPadding - float(charSize)/4.0f));
 
-    	if (getText() == "") {
+    	if (getText().empty()) {
     		width = 0;
     		height = 0;
     		return;
     	}
 
 		sf::FloatRect bounds = textObj.getGlobalBounds();
-    	bounds.height = charSize * 7/7;
+    	bounds.height = float(charSize);
 
 		width = bounds.width + 2*textPadding + leftPadding + rightPadding;
 		height = bounds.height + 2*textPadding + topPadding + bottomPadding;
@@ -73,7 +74,7 @@ public:
 		if (width > reserveWidth) reserveWidth= width + 20;
 	}
 
-	void draw(sf::RenderTarget& target) const override {
+	void draw(sf::RenderTarget& target) override {
 
 		float rWidth = width - leftPadding - rightPadding;
 		float rHeight = height - topPadding - bottomPadding;

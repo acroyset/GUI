@@ -4,7 +4,7 @@
 
 #ifndef SPACER_H
 #define SPACER_H
-#include "View.h"
+#include "../Utils/View.h"
 
 class Spacer final : public View {
 
@@ -12,7 +12,7 @@ public:
 
 	bool isExpanding = true;
 
-	Spacer() {}
+	Spacer() = default;
 
 	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 		this->position = position;
@@ -20,7 +20,7 @@ public:
 		height = 0;
 	}
 
-	void draw(sf::RenderTarget& target) const override {
+	void draw(sf::RenderTarget& target) override {
 		// Spacer draws nothing
 	}
 };

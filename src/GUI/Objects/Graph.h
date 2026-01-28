@@ -7,9 +7,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Utils.h"
+#include "../Utils/Utils.h"
 #include "Text.h"
-#include "View.h"
+#include "../Utils/View.h"
 
 class Graph final : public View {
 
@@ -28,10 +28,11 @@ public:
 	float maxPoints = 256;
 
 	Graph(std::vector<sf::Vector2f>& data, float graphWidth, float graphHeight, Text* text) :
+			textObj(text),
 			points(data),
 			graphWidth(graphWidth),
-			graphHeight(graphHeight),
-			textObj(text) {}
+			graphHeight(graphHeight) {
+	}
 
 	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 
@@ -45,7 +46,7 @@ public:
 		height = textHeight + graphHeight + topPadding + bottomPadding + (textHeight != 0 ? padding : 0);
 	}
 
-	void draw(sf::RenderTarget& target) const override {
+	void draw(sf::RenderTarget& target) override {
 
 		float rWidth = width - leftPadding - rightPadding;
 		float rHeight = height - topPadding - bottomPadding;
@@ -68,11 +69,30 @@ public:
 			maxs.x = std::max(maxs.x, point.x);
 			maxs.y = std::max(maxs.y, point.y);
 		}
+		float thresholdPercent = 0.5f;  // 50% of range
+
+		float rangeX = std::abs(maxs.x - mins.x);
+		float rangeY = std::abs(maxs.y - mins.y);
+
+		float thresholdX = rangeX * thresholdPercent;
+		float thresholdY = rangeY * thresholdPercent;
+
+		if (std::abs(mins.x) < thresholdX) mins.x = 0.0f;
+		if (std::abs(mins.y) < thresholdY) mins.y = 0.0f;
+		if (std::abs(maxs.x) < thresholdX) maxs.x = 0.0f;
+		if (std::abs(maxs.y) < thresholdY) maxs.y = 0.0f;
+
+		float threshold = 0.01;
+
+		if (std::abs(mins.x) < threshold) mins.x = 0.0f;
+		else if (std::abs(maxs.x) < threshold) maxs.x = 0.0f;
+		if (std::abs(mins.y) < threshold) mins.y = 0.0f;
+		else if (std::abs(maxs.y) < threshold) maxs.y = 0.0f;
 
 		float graphPadding = cornerRadius - padding;
 
-		float rangeX = maxs.x - mins.x;
-		float rangeY = maxs.y - mins.y;
+		rangeX = maxs.x - mins.x;
+		rangeY = maxs.y - mins.y;
 
 		if (rangeX == 0) rangeX = 1;
 		if (rangeY == 0) rangeY = 1;
@@ -81,61 +101,81 @@ public:
 		float scaleY = (GHeight-2*pointRadius - 2*graphPadding) / rangeY;
 
 		// Draw gridlines at fixed data intervals that scale with mins/maxs
-		float gridStepX = std::pow(2, std::floor(std::log2(rangeX / 4)));
-		float gridStepY = std::pow(2, std::floor(std::log2(rangeY / 4)));
+		float gridStepX = std::powf(2, std::floor(std::log2(rangeX / 4)));
+		float gridStepY = std::powf(2, std::floor(std::log2(rangeY / 4)));
 
-		int decimalPlaces = 2;
+		auto getDecimalPlaces = [](float value) -> int {
+			if (value == 0.0f) return 0;
+
+			value = std::abs(value);
+
+			// For numbers >= 1, count digits before decimal
+			if (value >= 1.0f) {
+				return std::max(2-(static_cast<int>(std::floor(std::log10(value)))), 0);
+			}
+
+			// For numbers < 1, count zeros after decimal
+			return -static_cast<int>(std::floor(std::log10(value))) + 1;
+		};
+
+		// Usage in your code:
+		int decimalPlacesX = getDecimalPlaces(rangeX);
+		int decimalPlacesY = getDecimalPlaces(rangeY);
 
 		int labelCountX = 0;
 		int labelCountY = 0;
 
 		// Vertical gridlines with labels
-		for (float dataX = std::ceil(mins.x / gridStepX) * gridStepX; dataX <= maxs.x; dataX += gridStepX) {
+		float dataX = std::ceil(mins.x / gridStepX) * gridStepX;
+		while (dataX <= maxs.x){
 			float screenX = (dataX - mins.x) * scaleX + startPos.x + graphPadding;
 
 			drawThickLine(
 				target,
 				sf::Vector2f{screenX, startPos.y + graphPadding},
-				sf::Vector2f{screenX, startPos.y + GHeight - graphPadding + (labelCountX % 2 == 0 ? 3 : 0)},
-				2,
+				sf::Vector2f{screenX, startPos.y + GHeight - graphPadding + (labelCountX % 2 == 0 ? 3.0f : 0.0f)},
+				dataX == 0 ? 4 : 2,
 				sf::Color(80, 80, 80)
 			);
 
 			if (labelCountX % 2 == 0) {
 				std::ostringstream oss;
-				oss << std::fixed << std::setprecision(decimalPlaces) << dataX;
+				oss << std::fixed << std::setprecision(decimalPlacesX) << dataX;
 				sf::Text label(oss.str(), textObj->font, 12);
 				label.setFillColor(sf::Color(150, 150, 150));
 				label.setPosition(screenX - 10, startPos.y + GHeight - graphPadding);
 				target.draw(label);
 			}
 			labelCountX++;
+			dataX += gridStepX;
 		}
 
 		// Horizontal gridlines with labels
-		for (float dataY = std::ceil(mins.y / gridStepY) * gridStepY; dataY <= maxs.y; dataY += gridStepY) {
+		float dataY = std::ceil(mins.y / gridStepY) * gridStepY;
+		while (dataY <= maxs.y) {
 			float screenY = startPos.y + GHeight - graphPadding - (dataY - mins.y) * scaleY;
 
 			drawThickLine(
 				target,
 				sf::Vector2f{startPos.x + graphPadding, screenY},
 				sf::Vector2f{startPos.x + GWidth - graphPadding, screenY},
-				2,
+				dataY == 0 ? 4 : 2,
 				sf::Color(80, 80, 80)
 			);
 
 			if (labelCountY % 2 == 0 && dataY != 0) {
 				std::ostringstream oss;
-				oss << std::fixed << std::setprecision(decimalPlaces) << dataY;
+				oss << std::fixed << std::setprecision(decimalPlacesY) << dataY;
 				sf::Text label(oss.str(), textObj->font, 12);
 				label.setFillColor(sf::Color(150, 150, 150));
 				label.setPosition(startPos.x + GWidth - label.getLocalBounds().width - graphPadding, screenY);
 				target.draw(label);
 			}
 			labelCountY++;
+			dataY += gridStepY;
 		}
 
-		int step = std::max(1.0f, float(points.size()/maxPoints));
+		int step = int(std::max(1.0f, float(points.size())/maxPoints));
 
 		for (int i = 0; i < points.size()-1; i += step) {
 			i = std::min(i, int(points.size())-1-step);

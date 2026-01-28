@@ -4,8 +4,8 @@
 
 #ifndef VSTACK_H
 #define VSTACK_H
-#include "View.h"
-#include "Spacer.h"
+#include "../Utils/View.h"
+#include "../Objects/Spacer.h"
 
 class VStack final : public View {
 	std::vector<View*> items;
@@ -13,6 +13,12 @@ class VStack final : public View {
 public:
 
 	float spacing = 0;
+
+	explicit VStack(const std::vector<View*>& items) {
+		for (View* item : items) {
+			addItem(item);
+		}
+	}
 
 	void update(sf::Vector2f position, float dt, sf::Vector2f mousePos, bool mousePressed) override {
 
@@ -30,7 +36,7 @@ public:
 		// First pass: calculate non-spacer height and count spacers
 		for (int i = 0; i < numItems; i++) {
 			View* item = items[i];
-			Spacer* spacer = dynamic_cast<Spacer*>(item);
+			auto* spacer = dynamic_cast<Spacer*>(item);
 
 			if (spacer) {
 				spacerCount++;
@@ -47,13 +53,13 @@ public:
 
 		// Calculate available space for spacers
 		float availableHeight = height - topPadding - bottomPadding - totalHeight;
-		float spacerHeight = spacerCount > 0 ? availableHeight / spacerCount : 0;
+		float spacerHeight = spacerCount > 0 ? availableHeight / float(spacerCount) : 0;
 
 		// Second pass: update all items with proper positioning
 		sf::Vector2f currentPos = position;
 		for (int i = 0; i < numItems; i++) {
 			View* item = items[i];
-			Spacer* spacer = dynamic_cast<Spacer*>(item);
+			auto* spacer = dynamic_cast<Spacer*>(item);
 
 			if (spacer) {
 				spacer->setPosition(currentPos);
@@ -71,7 +77,7 @@ public:
 		height = totalHeight + topPadding + bottomPadding;
 	}
 
-	void draw(sf::RenderTarget& target) const override {
+	void draw(sf::RenderTarget& target) override {
 
 		float rWidth = width - leftPadding - rightPadding;
 		float rHeight = height - topPadding - bottomPadding;
@@ -79,7 +85,7 @@ public:
 		drawRoundedRectangle(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, bgColor, cornerRadius);
 		drawRoundedOutline(target, position + sf::Vector2f{leftPadding, topPadding}, rWidth, rHeight, outlineColor, outlineColor, cornerRadius, outlineThickness);
 
-		for (const View* item : items) {
+		for (View* item : items) {
 			item->draw(target);
 		}
 	}
